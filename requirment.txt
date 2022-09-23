@@ -1,0 +1,11 @@
+pip install marshmallow-sqlalchemy  # api schema
+
+
+##### migrate the model
+# $ flask db stamp head
+# $ flask db migrate
+# $ flask db upgrade
+
+
+
+SQLAlchemyAutoSchema  -  SQLAlchemySchema
