@@ -1,4 +1,4 @@
-from flask import Flask , request , jsonify
+from flask import Flask , request , jsonify ,render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_migrate import Migrate
@@ -162,13 +162,24 @@ def get_books():
         book_schema = Bookscima(many=True)
         outpot = book_schema.dump(book_list)
         return jsonify({'books':outpot})
+
+
         
-@app.route('/books/<int:id>',methods=['GET','POST'])
+@app.route('/books/<int:id>',methods=['GET','PUT'])
 def get_book(id):
-    book_list = Book.query.get_or_404(id)
-    book_schema = Bookscima()
-    outpot = book_schema.dump(book_list)
-    return jsonify({'books':outpot})
+    if request.method == 'PUT':
+        title = request.json['title']
+        age   = request.json['age']
+        Book.query.filter_by(id).update({'title':title,'age':age})
+        db.session.commit()
+        return "updated",200
+    else:
+        book_list = Book.query.get_or_404(id)
+        book_schema = Bookscima()
+        outpot = book_schema.dump(book_list)
+        return jsonify({'books':outpot})
+
+
 
 
 
@@ -177,10 +188,9 @@ def get_posts():
     if request.method == 'POST':
         post_title = request.json['title']
         post_content = request.json['content']
-        post_date_posted = request.json['date_posted']
         # post_comments = request.json['comments']
         db.create_all()
-        new_post=Book(title=post_title,content=post_content,date_posted=post_date_posted)
+        new_post=Book(title=post_title,content=post_content)
         db.session.add(new_post)
         db.session.commit()
         return '{msg: "created"}',201
@@ -191,12 +201,19 @@ def get_posts():
         return jsonify({'posts':outpot})
 
 
-@app.route('/posts/<int:id>',methods=['GET','POST'])
+@app.route('/posts/<int:id>',methods=['GET','PUT'])
 def get_post(id):
-    post_list = Posts.query.get_or_404(id)
-    post_schema = Postsscima()
-    outpot = post_schema.dump(post_list)
-    return jsonify({'post':outpot})
+    if request.method == 'PUT':
+        title = request.json['title']
+        content   = request.json['content']
+        Book.query.filter_by(id).update({'title':title,'content':content})
+        db.session.commit()
+        return "updated",200
+    else:
+        post_list = Posts.query.get_or_404(id)
+        post_schema = Postsscima()
+        outpot = post_schema.dump(post_list)
+        return jsonify({'post':outpot})
 
 
 
@@ -204,10 +221,9 @@ def get_post(id):
 def get_comments():
     if request.method == 'POST':
         comment_content = request.json['content']
-        comment_date_posted = request.json['date_posted']
         post_post = request.json['post_id']
         db.create_all()
-        new_comment=Comments(content=comment_content,date_posted=comment_date_posted,post_id=post_post)
+        new_comment=Comments(content=comment_content,post_id=post_post)
         db.session.add(new_comment)
         db.session.commit()
         return '{msg: "created"}',201
@@ -219,20 +235,26 @@ def get_comments():
 
 
 
-@app.route('/comments/<int:id>',methods=['GET','POST'])
+@app.route('/comments/<int:id>',methods=['GET','PUT'])
 def get_comment(id):
-    comment_list = Comments.query.get_or_404(id)
-    comment_schema = Commentsscima()
-    outpot = comment_schema.dump(comment_list)
-    return jsonify({'comment':outpot})
+    if request.method == 'PUT':
+        content = request.json['content']
+        post_id   = request.json['post_id']
+        Book.query.filter_by(id).update({'content':content,'post_id':post_id})
+        db.session.commit()
+        return "updated",200
+    else:
+        comment_list = Comments.query.get_or_404(id)
+        comment_schema = Commentsscima()
+        outpot = comment_schema.dump(comment_list)
+        return jsonify({'comment':outpot})
 
 
 @app.route('/tags',methods=['GET','POST'])
 def get_tag():
     if request.method == "POST":
         name = request.json['name']
-        date_posted = request.json['date_posted']
-        new_tag=Tags(name=name,date_posted=date_posted)
+        new_tag=Tags(name=name)
         db.session.add(new_tag)
         db.session.commit()
         return '{msg:"created"}',201
@@ -243,12 +265,16 @@ def get_tag():
         return jsonify({'tags':outpot})
 
 
-@app.route('/tags/<int:id>',methods=['GET','POST'])
+@app.route('/tags/<int:id>',methods=['GET','PUT'])
 def get_one_post(id):
-    get_tag = Tags.query.get_or_404(id)
-    get_schema = Tagscima()
-    outpot = get_schema.dump(get_tag)
-    return jsonify({'tag':outpot})
+    if request.method == 'PUT':
+        name = request.json['name']
+        Tags.query.filter_by(id).update({'name':name})
+    else:
+        get_tag = Tags.query.get_or_404(id)
+        get_schema = Tagscima()
+        outpot = get_schema.dump(get_tag)
+        return jsonify({'tag':outpot})
 
 
 if __name__ == "__main__":
