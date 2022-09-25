@@ -22,9 +22,14 @@ class Book(db.Model):
     title = db.Column(db.String(40),unique=True,nullable=False)
     age = db.Column(db.Integer(),nullable=False)
 
+    @property
+    def get_method(self):
+        return "hollew world"
+
     def __init__(self,title,age):
         self.title = title
         self.age = age
+        
 
 
 
@@ -34,6 +39,11 @@ class Posts(db.Model):
     content     = db.Column(db.Text)
     date_posted = db.Column(db.DateTime,default=datetime.utcnow)
     comment        = db.relationship('Comments',backref='post')
+    
+    @property
+    def count_commets(self):
+        comments = Comments.query.filter(Comments.post_id==self.id).count()
+        return comments
 
     def __init__(self, title, content, date_posted):
         self.title = title
@@ -87,7 +97,10 @@ class Tags(db.Model):
 class Bookscima(ma.Schema):
     class Meta:
         model = Book
-        fields = ("id", "title", "age")
+    id      = fields.Integer()
+    title = fields.String()
+    age = fields.Integer()
+    get_method = fields.String()
 
 
 class Commentsscima(ma.Schema):
@@ -113,6 +126,7 @@ class Postsscima(ma.Schema):
     title = fields.String()
     content = fields.String()
     date_posted = fields.DateTime()
+    count_commets =fields.Integer()
     comment = fields.List(fields.Nested(Commentsscima(only=("id", "content","date_posted"))))
     
         
